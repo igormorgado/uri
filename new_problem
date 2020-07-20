@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ -z "${1}" ]
+then
+	echo "You need to specify a directory name"
+	echo
+	echo "For example:"
+	echo
+	echo "${0} 1234"
+	exit
+fi
+
+cp -ra 0000 "${1}"
+
+echo "Created new problem ${1}"
+
+cd "${1}"
+
