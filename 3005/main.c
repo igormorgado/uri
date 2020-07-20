@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <math.h>
 
+#define MU_ASSERTCHECK
+#include "../lib/mulib/mu_ds.h" 
+
 int check_dir(unsigned long a[3], unsigned long b[3])
 {
     for(size_t i = 0; i < 3; i++)

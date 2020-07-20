@@ -1,5 +1,8 @@
 #include <stdio.h>
 
+#define MU_ASSERTCHECK
+#include "../lib/mulib/mu_ds.h" 
+
 int main(void) { 
     int a[9] = {0};
     int b[2] = {0};

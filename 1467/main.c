@@ -1,5 +1,8 @@
 #include <stdio.h>
 
+#define MU_ASSERTCHECK
+#include "../lib/mulib/mu_ds.h" 
+
 int main(void) { 
     const char OutcomesStr[8] = { '*', 'C', 'B', 'A', 'A', 'B', 'C', '*' };
     char buf[6];

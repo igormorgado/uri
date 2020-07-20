@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <math.h>
 
+#define MU_ASSERTCHECK
+#include "../lib/mulib/mu_ds.h" 
+
 int main(void) { 
     unsigned long tempo = 0;
     unsigned long BR = 0;

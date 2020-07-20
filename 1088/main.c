@@ -1,5 +1,9 @@
 #include <stdio.h>
 
+
+#define MU_ASSERTCHECK
+#include "../lib/mulib/mu_ds.h" 
+
 void mergeptr(int *array, int l, int m, int r)
 {
     int tmp[r - l + 1];
