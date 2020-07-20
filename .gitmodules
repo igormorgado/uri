@@ -1,0 +1,3 @@
+[submodule "lib/mulib"]
+	path = lib/mulib
+	url = https://github.com/igormorgado/mulib
