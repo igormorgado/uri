@@ -1,0 +1,25 @@
+rm -rf main submit.c
+gcc -o main main.c --pedantic -Wall --std=c99  -lm
+./main < entrada.txt > saida.txt 
+Running tests...
+	0  	 0	 0	0		 -- OK
+       	1 	 0	 0	0		 -- OK
+       	2 	 0	 1	1		 -- OK
+       	3 	 0	 1	1		 -- OK
+       	4 	 0	 2	2		 -- OK
+       	5 	 0	 5	5		 -- OK
+       	6 	 0	 7	7		 -- OK
+       	7 	 0	 12	12		 -- OK
+       	8 	 1	 20	19		 -- FAIL
+       	9 	 1	 34	33		 -- FAIL
+       	10	 2	 61	59		 -- FAIL
+       	11	 5	 104	99		 -- FAIL
+       	12	 7	 177	170		 -- FAIL
+       	13	 12	 302	290		 -- FAIL
+       	14	 20	 516	496		 -- FAIL
+       	15	 34	 888	854		 -- FAIL
+       	16	 61	 1524	1463		 -- FAIL
+       	17	 104	 2610	2506		 -- FAIL
+       	18	 177	 4469	4292		 -- FAIL
+       	19	 302	 7653	7351		 -- FAIL
+       	20	 516	 13117	12601		 -- FAIL
