@@ -1,3 +1,12 @@
 main
 *.o
+tags
+a.out 
+permut_backtrack
+permut_recursive  
+subset_backtrack  
+subset_recursive  
+subset  
+knight_tour  
+
 
