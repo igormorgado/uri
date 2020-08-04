@@ -1,6 +1,6 @@
 TARGET=main
 CC = gcc
-CFLAGS = --pedantic -Wall --std=c99 
+CFLAGS = --pedantic -Wall --std=c99 -ftrapv
 LIBS = -lm
 
 $(TARGET):
