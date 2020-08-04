@@ -1,8 +1,1 @@
-abc
-aaaaa
-huehue
-joao
-pedro
-gaby
-mario
-
+entrada_2.txt

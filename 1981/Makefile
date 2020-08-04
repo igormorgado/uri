@@ -1,6 +1,6 @@
 TARGET=main
 CC = gcc
-CFLAGS = --pedantic -Wall --std=c99 -Wno-unused-function
+CFLAGS = --pedantic -Wall --std=c99 
 LIBS = -lm
 
 $(TARGET):
@@ -11,7 +11,6 @@ run:
 
 test:
 	@echo Running tests...
-	@echo "Saida   esperado"
 	@paste saida.txt esperado.txt | awk -v FS='\t' -v OFS='\t' -f test.awk
 
 all: clean main run test

@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     int i, j;
     while (scanf("%s", &en[1]) != EOF)
     {
-        
+
         en[0] = 'X';
         int lig[30];
         t = strlen(en);
@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
         for (i = t - 1; i >= 0; --i)
         {
-            
+
             for (j = 0; j < 30; ++j)
                 g[i][j] = lig[j];
 
@@ -52,7 +52,6 @@ void dfs(int u)
     for (i = 0; i < 30; ++i)
         if (g[u][i])
         {
-
             p[s++] = 'a' + i;
             p[s] = '\0';
             print(p);
