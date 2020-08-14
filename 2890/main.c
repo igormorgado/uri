@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef long int li;
+typedef long long int li;
 
 #define MODULO (li)1000007
 #define MAXN 10001
@@ -81,23 +81,16 @@ int main(void) {
     while(scanf("%d", &n) != EOF)
     {
         if(n == 0) break;
-
         // a(n) = C(n,1) + 3C(n,2) + 3C(n,3) + 2C(n,4)
-        //li res = 0;
-        // li p = 0;
-        // p = 1;
-        // res +=     divm(f[n], (f[p] * f[n-p] % MODULO), MODULO);
-        // p = 2;
-        // res += 3 * divm(f[n], (f[p] * f[n-p] % MODULO), MODULO);
-        // p = 3;
-        // res += 3 * divm(f[n], (f[p] * f[n-p] % MODULO), MODULO);
-        // p = 4;
-        // res += 2 * divm(f[n], (f[p] * f[n-p] % MODULO), MODULO);
-
-        /* FASTER! */
-        li p = powm(n, MODULO);
-        li pp = powm(p, MODULO);
-        li res = divm(((((11 * p) % MODULO) + pp) % MODULO), 12, MODULO);
+        li res = 0;
+        res += C(n, 1);
+        res %= MODULO;
+        res += 3 * C(n, 2);
+        res %= MODULO;
+        res += 3 * C(n, 3);
+        res %= MODULO;
+        res += 2 * C(n, 4) % MODULO;
+        res %= MODULO;
 
         fprintf(stdout,"%ld\n", res);
     }
