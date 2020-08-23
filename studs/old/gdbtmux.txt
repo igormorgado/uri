@@ -1,0 +1,13 @@
+#Ideas
+# dashboard -output /dev/pts/1
+# dashboard assembly -output /dev/pts/3
+# dashboard source -output /dev/pts/2
+# dashboard assembly -style height 0
+# dashboard source -style height 0
+gdb-tmux() {
+    local id="$(tmux split-pane -hPF "#D" "tail -f /dev/null")"
+    tmux last-pane
+    local tty="$(tmux display-message -p -t "$id" '#{pane_tty}')"
+    gdb -ex "dashboard -output $tty" "$@"
+    tmux kill-pane -t "$id"
+}
