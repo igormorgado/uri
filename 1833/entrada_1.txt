@@ -1,0 +1,19 @@
+4
+7
+3
+amarela azul vermelha
+4
+vermelha verde azul amarela
+10
+0
+2
+vermelha azul
+5
+3
+vermelha vermelha vermelha
+4
+azul branca vermelha verde
+8
+3
+azul branca amarela
+0

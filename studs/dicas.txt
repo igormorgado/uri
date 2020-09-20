@@ -1,0 +1,20 @@
+Video 1:20:50 Aritmetica modular para digitos grandes.
+
+u64 n = 9;
+char N[] = "123141....131233";
+u64 m = 0;
+u64 N_sz = strlen(N);
+for (size_t i = N; i >=0; --i)
+    m = ( 10*m + atoi(N[i]) ) % n;
+return m;
+
+
+# Perigo de overflow
+
+(a + c) % b ---> a % b + c % b
+(a * c) % b ---> a % b * c % b
+
+# Aritmetica modular pode ser negativa.. Soma-se o mod para corrigir.(ja sei)
+
+
+

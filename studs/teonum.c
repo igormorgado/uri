@@ -2,29 +2,51 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <stdbool.h>
-#include <stdint.h>
 
 #include <assert.h>
 
-typedef int_fast64_t i64;
-typedef int_fast32_t i32;
-typedef int_fast16_t i16;
-typedef int_fast8_t  i8;
+#ifndef __cplusplus__
+#include <stdbool.h>
+#endif
 
-typedef uint_fast64_t u64;
-typedef uint_fast32_t u32;
-typedef uint_fast16_t u16;
-typedef uint_fast8_t  u8;
-
-typedef double        f64;
-typedef float         f32;
+#include "types.h"
 
 /* Size hinting:
  *
  * 2^8 < 10e5 < 2^16 < 10e7 < 2^32 < 10e15 < 2^64
  *
  */
+
+u64                 gcd                 (i64 a, i64 b);
+u64                 gcd_rec             (i64 a, i64 b);
+void                gcde                (i64 a, i64 b, i64 *x, i64 *y);
+void                gcde_rec            (i64 a, i64 b, i64 *d, i64 *x, i64 *y);
+u64                 lcm                 (i64 a, i64 b);
+
+i64                 invm                (i64 b, i64 n);
+i64                 summ                (i64 x, i64 y, i64 n);
+i64                 mulm                (i64 x, i64 y, i64 n);
+i64                 divm                (i64 x, i64 y, i64 n);
+
+static inline u64   upper_test          (const u64 n);
+
+static void         prime_table         (const u64 n, u64 const * const C, u64 * const P, u64 *np);
+static void         sieve               (u64 const n, u64 * const C);
+
+static bool         is_prime_lrg        (u64 const n, u64 const * const P, u64 const np);
+static bool         is_prime_avg        (u64 const n, u64 const * const C);
+static bool         is_prime_sml        (u64 const n);
+
+static void         prime_factors_lrg   (u64 n, u64 const * const P, u64 const np, u64 * const F, u64 * const nf);
+static void         prime_factors_avg   (u64 n, u64 const * const C, u64 * const F, u64 * const nf);
+static void         prime_factors_sml   (u64 n, u64 * const F, u64 * const nf);
+
+static void         divisors_lrg        (u64 const n, u64 const * const F, u64 const nf, u64 * const D, u64 * const nd);
+static void         divisors_avg        (u64 n, u64 const * const F, u64 const nf, u64 * const D, u64 * const nd);
+static void         divisors_sml        (u64 const n, u64 * const D, u64 * const nd);
+
+static void         print_header        (u64 const n);
+static void         print_table         (u64 const * const T, u64 const nelem);
 
 struct table
 {
@@ -36,6 +58,104 @@ struct table
  * TODO: Change the arguments to use table struct
  * TODO: Function to allocate and destroy tables (malloc/free)
  */
+
+u64 gcd(i64 a, i64 b)
+{
+    u64 r = 0;
+    while(b != 0)
+    {
+        r = a % b;
+        a = b;
+        b = r;
+    }
+    return a;
+}
+
+u64 gcd_rec(i64 a, i64 b)
+{
+    if (b == 0)
+        return a;
+    else
+        return gcd(b, a % b);
+}
+
+void gcde(i64 a, i64 b, i64 *x, i64 *y)
+{
+    i64 t = 0;
+    *x = 1;
+    *y = 0;
+
+    i64 Pa[64];
+    i64 Pb[64];
+
+    i64 f = 0;
+
+    while(b != 0)
+    {
+        Pa[t] = a;
+        Pb[t] = b;
+        f = a % b;
+        a = b;
+        b = f;
+        t++;
+    }
+
+    for (size_t i = t-1; i >= 0; --i)
+    {
+        f = *y;
+        *y = *x - (Pa[i]/Pb[i]) * (*y);
+        *x = f;
+    }
+
+}
+
+void gcde_rec(i64 a, i64 b, i64 *d, i64 *x, i64 *y)
+{
+    if (b == 0)
+    {
+        *d = a;
+        *x = 1;
+        *y = 0;
+        return;
+    }
+
+    gcde_rec(b, a%b, d, x, y);
+    i64 nx = *x;
+    *x = *y;
+    *y = nx - (a / b) * (*y);
+}
+
+// Check LCM by prime factorization
+// https://en.wikipedia.org/wiki/Least_common_multiple#Using_prime_factorization
+u64 lcm(i64 a, i64 b)
+{
+    return a * ( b / gcd(a, b));
+}
+
+i64 invm(i64 b, i64 n)
+{
+    // TODO: Assert b and n are pairwise prime
+    i64 d = 0;
+    i64 x = 0;
+    i64 y = 0;
+    gcde(b, n, &d, &x, &y);
+    return (x+n) % n;
+}
+
+i64 summ(i64 x, i64 y, i64 n)
+{
+    return (x+y)%n;
+}
+
+i64 mulm(i64 x, i64 y, i64 n)
+{
+    return (x*y)%n;
+}
+
+i64 divm(i64 x, i64 y, i64 n)
+{
+    return ((x % n) * (invm(y, n) % n)) % n;
+}
 
 static inline u64
 upper_test(const u64 n)
@@ -256,6 +376,50 @@ divisors_sml(u64 const n, u64 * const D, u64 * const nd)
         *nd = *nd - 1;
 }
 
+/*
+ * a is the congruency array
+ * n is the Modulo array
+ * k is the number of elements in *a and *n (that must be the same)
+ * all elements in M must be pairwise prime, this function do not check this
+ * not complying with this is UB
+ */
+i64 void
+chinese(i64 const * const a, i64 const * const n, i64 const k)
+{
+    i64 NN = 1;
+    for (size_t i=0; i < k; ++i)
+        NN *= n[i];
+
+    /* Malloc less; overflow lesser */
+    i64 X = 0;
+    i64 Xt = 0;
+    i64 Ni = 0;
+    for (size_t i=0; i < k; ++i)
+    {
+        Ni = NN/n[i];
+        Xt = (a[i] * Ni) % NN;
+        X += (Xt * invm(Ni, n[i])) % NN;
+        // X += (a[i] * Ni * invm(Ni, n[i])) % NN;
+    }
+
+#if 0
+    i64 *N = malloc(sizeof *N * k);
+    i64 *x = malloc(sizeof *x * k);
+    i64 X = 0;
+    for (size_t i=0; i < k; ++i)
+    {
+        N[i] = NN/n[i];
+        x[i] = invm(N[i], n[i]);
+        X += (a[i] * N[i] * x[i]) % NN;
+    }
+
+    free(N);
+    free(x);
+#endif
+
+    return X;
+}
+
 static void
 print_header(u64 const n)
 {
@@ -275,6 +439,7 @@ print_table(u64 const * const T, u64 const nelem)
 int
 main(void)
 {
+#if 0
     // u64 n = 468;
     u64 n = 999999999999989;
     u64 sz = (u64)sqrt(n)+1;
@@ -310,6 +475,7 @@ main(void)
     free(S);
     free(P);
     free(F);
+#endif
 
 #if 0
     u64 n = 2147483659;
@@ -419,5 +585,7 @@ main(void)
     free(P);
     free(F);
 #endif
+
+    return 0;
 }
 
