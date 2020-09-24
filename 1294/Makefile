@@ -1,6 +1,6 @@
 TARGET=main
 CC = gcc
-CFLAGS = -ggdb --pedantic -Wall --std=c99 
+CFLAGS = -ggdb --pedantic -Wall --std=c99 -Wno-unused-function
 LIBS = -lm
 
 $(TARGET):
