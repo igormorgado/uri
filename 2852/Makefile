@@ -1,6 +1,6 @@
 TARGET=main
 CC = gcc
-CFLAGS = -ggdb --pedantic -Wall --std=c99
+CFLAGS = -ggdb --pedantic -Wall --std=c99 
 LIBS = -lm
 
 $(TARGET):
@@ -23,4 +23,4 @@ submit: clean
 	cpp -P $(TARGET).c > submit.c
 
 clean:
-	rm -rf $(TARGET) submit.c
+	rm -rf $(TARGET) submit.c main.exe
