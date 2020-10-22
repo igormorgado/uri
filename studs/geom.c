@@ -684,9 +684,9 @@ static int
 orientation(Vec2 v0, Vec2 v1, Vec2 v2)
 {
     double s = (v1.x - v0.x) * (v2.y - v0.y) - (v2.x - v0.x) * (v1.y - v0.y);
-    if      (s > 0) return  1;
-    else if (s < 0) return -1;
-    else            return  0;
+    if      (s > 0) return  1; // counterclockwise
+    else if (s < 0) return -1; // clockwise
+    else            return  0; // colinear
 }
 
 
@@ -881,6 +881,7 @@ polygon_is_convexhull(Vec2 *p, size_t n)
     return true;
 }
 
+
 static bool
 polygon_point_interior(Vec2 *p, size_t n, Vec2 q)
 {
@@ -903,8 +904,263 @@ polygon_point_interior(Vec2 *p, size_t n, Vec2 q)
 }
 
 
+static void
+vecsort(Vec2 *p, size_t e, size_t d)
+{
+    int k;
+    size_t i, j;
+    Vec2 t, r;
+    double d0, d1, d2;
+
+    if (d > e)
+    {
+        i = e;
+        j = d;
+        t = p[(e+d)/2];
+        d1 = p[0].x - t.x;
+        d2 = p[0].y - t.y;
+        d0 = d1 * d1 + d2 * d2;
+
+        while (i <= j)
+        {
+            while(1)
+            {
+                k = orientation(p[0], p[i], t);
+                if (k == 1)
+                {
+                    i++;
+                }
+                else if (k == 0)
+                {
+                    d1 = p[0].x - p[i].x;
+                    d2 = p[0].y - p[i].y;
+                    d1 = d1 * d1 + d2 * d2;
+                    if (d1 < d0)
+                    {
+                        i++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+            while(1)
+            {
+                k = orientation(p[0], t, p[j]);
+                if (k == 1)
+                {
+                    j--;
+                }
+                else if (k == 0)
+                {
+                    d1 = p[0].x - p[j].x;
+                    d2 = p[0].y - p[j].y;
+                    d1 = d1 * d1 + d2 * d2;
+                    if (d0 < d1)
+                    {
+                        j--;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if (i <= j)
+            {
+                r = p[i];
+                p[i] = p[j];
+                p[j] = r;
+                i++;
+                j--;
+            }
+        }
+        vecsort (p, e, j);
+        vecsort (p, i, d);
+    }
+}
+
+
+/* Find convex hull from src and stores in dst : O( 2n log(n) + 4n + 2 ) and memory O(3n)*/
+static void
+convexhull2(const Vec2 * const src, const size_t src_elems,
+           Vec2 * dst, size_t * dst_elems)
+{
+    /* Copy SRC since it's const */
+    Vec2 * src_cpy = malloc(src_elems * sizeof *src);
+
+    /* Find the index: O(n) */
+    size_t imin = 0;
+    for (size_t i = 0; i < src_elems; ++i)
+    {
+        src_cpy[i].x = src[i].x;
+        src_cpy[i].y = src[i].y;
+        // Lowest Y and if equal, lowest x.
+        if ((src_cpy[i].y < src_cpy[imin].y) ||
+            (equal(src_cpy[i].y, src_cpy[imin].y) &&
+            (src_cpy[i].x < src_cpy[imin].x)))
+        {
+            imin = i;
+        }
+    }
+
+    /* First point in src_cpy should be the one at index imin: O(1) */
+    src_cpy[0] = src[imin];
+    src_cpy[imin] = src[0];
+
+    vecsort(src_cpy, 1, src_elems - 1);
+
+    /* In this point src_cpy is sorted by angle and distance */
+    dst[0] = src_cpy[0];
+
+    size_t j = 1;
+    while (orientation(dst[0], src_cpy[j], src_cpy[(j + 1) % src_elems]) == 0)
+        j++;
+
+    dst[1] = src_cpy[j];
+    dst[2] = src_cpy[(j + 1) % src_elems];
+
+    size_t stk_pos = 2;
+
+    for (size_t i = j + 2; i <= src_elems; ++i)
+    {
+        while (orientation(dst[stk_pos - 1], dst[stk_pos], src_cpy[i%src_elems]) <= 0)
+        {
+            stk_pos--;
+        }
+        stk_pos++;
+        dst[stk_pos].x = src_cpy[i%src_elems].x;
+        dst[stk_pos].y = src_cpy[i%src_elems].y;
+    }
+    free(src_cpy);
+
+    *dst_elems = stk_pos;
+}
+
+
+/* Find convex hull from src and stores in dst : O( 2n log(n) + 4n + 2 ) and memory O(3n)*/
+static size_t
+convexhull(const Vec2 * const src, const size_t src_elems,
+           Vec2 * dst, size_t * dst_elems)
+{
+    /* Copy SRC since it's const */
+    Vec2 * src_cpy = malloc(src_elems * sizeof *src);
+
+    /* Find the index: O(n) */
+    size_t imin = 0;
+    for (size_t j = 0; j < src_elems; ++j)
+    {
+        src_cpy[j].x = src[j].x;
+        src_cpy[j].y = src[j].y;
+        // Lowest Y and if equal, lowest x.
+        if ((src_cpy[j].y < src_cpy[imin].y) ||
+            (equal(src_cpy[j].y, src_cpy[imin].y) &&
+            (src_cpy[j].x < src_cpy[imin].x)))
+        {
+            imin = j;
+        }
+    }
+
+    /* First point in src_cpy should be the one at index imin: O(1) */
+    src_cpy[0] = src[imin];
+    src_cpy[imin] = src[0];
+
+    /* ISORT START */
+    /* Pre compute angle and distances: O(n) */
+    struct compute c[src_elems];
+    c[0].i = 0;
+    c[0].a = 0.0;
+    c[0].d = 0.0;
+    for (size_t j = 1; j < src_elems; ++j)
+    {
+        double dy = src_cpy[j].y - src_cpy[0].y;
+        double dx = src_cpy[j].x - src_cpy[0].x;
+        c[j].i = j;
+        c[j].a = atan2(dy, dx);
+        c[j].d = dx * dx + dy * dy;
+    }
+
+    /* First sort pass: O(n log n)*/
+    qsort(&c[1], src_elems-1, sizeof(*c), __cmpcmpt);
+
+    /* Find the last angle to check for colinear points: O(n) */
+    double last_angle = c[src_elems-1].a;
+    size_t a = 1;
+    for(size_t j = src_elems-1; j > 0; --j)
+    {
+        if(equal(c[j-1].a, last_angle))
+            a++;
+        else
+            break;
+    }
+
+    qsort(&c[src_elems-a], a, sizeof(*c), __cmpdistrev);
+
+    /* Create a copy of points: O(n) */
+    Vec2 * pcpy = malloc(src_elems * sizeof *pcpy);
+    memcpy(pcpy, src_cpy, src_elems * sizeof *src_cpy);
+
+    /* Copy back based on extenal index:  O(n)*/
+    for(size_t j = 0; j < src_elems; ++j)
+    {
+        src_cpy[j].x = pcpy[c[j].i].x;
+        src_cpy[j].y = pcpy[c[j].i].y;
+    }
+    free(pcpy);
+
+    /* ISORT END */
+    /* In this point src_cpy is sorted by angle and distance */
+
+    dst[0] = src_cpy[0];
+    size_t stk_pos = 1;
+    for (size_t j = 0; j <= src_elems; ++j)
+    {
+        while(orientation(dst[stk_pos - 1], dst[stk_pos], src_cpy[j%src_elems]) <= 0)
+            stk_pos--;
+
+        stk_pos++;
+        dst[stk_pos].x = src_cpy[j%src_elems].x;
+        dst[stk_pos].y = src_cpy[j%src_elems].y;
+    }
+
+    *dst_elems = stk_pos;
+    free(src_cpy);
+
+    return stk_pos;
+}
+
+
 int main(void)
 {
+    const Vec2 s[7] = {
+        {3,6},
+        {8,4},
+        {5,4},
+        {4,3},
+        {5,2},
+        {1,2},
+        {6,1}
+    };
+
+    Vec2 cvxhl[7] = {0};
+    size_t n = 0;
+    convexhull(s, 7, cvxhl, &n);
+
+    for(size_t i = 0; i < n; ++i)
+    {
+        printf("%zu: ", i);
+        point_print(cvxhl[i]);
+    }
+
 #if 0
     Vec2 s[12] = {{2, 3}, {7, 4}, {8, 3}, {10, 10}, {8, 5},
                   {2, 4}, {7, 2}, {2, 6}, {5, 0}, {11, 8},
